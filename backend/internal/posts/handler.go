@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"real-time-forum/internal/models"
 )
@@ -22,7 +23,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, http.StatusText(400), http.StatusBadRequest)
 			return
 		}
-		// post.UserID = userid
+		post.UserID = userId
+		post.CreatedAt = time.Now().Format("2006-01-02 15:04:05")
 		err = CreatePost(post)
 		if err != nil {
 			http.Error(w, http.StatusText(500), http.StatusInternalServerError)

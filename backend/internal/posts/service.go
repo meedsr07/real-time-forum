@@ -9,11 +9,10 @@ import (
 
 var categories = []string{
 	"General",
-	"Technology",
-	"Programming",
+	"Tech",
 	"Gaming",
+	"Movies",
 	"Science",
-	"Education",
 }
 
 func ValidatePostInput(post models.Post) bool {
