@@ -17,14 +17,18 @@ func CommentsHandler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case http.MethodGet:
-		postIDString := r.URL.Query().Get("post_id")
+		userID, err := posts.GetUserID(r)
+		if err != nil || userID <= 0 {
+			http.Error(w, `{"error":"Unauthorized. Please login to view comments."}`, http.StatusUnauthorized)
+			return
+		}
+		postIDString := r.URL.Query().Get("post_id") // gets post id from the URL
 		postID, err := strconv.Atoi(postIDString)
 		if err != nil || postID <= 0 {
 			http.Error(w, `{"error":"Invalid post_id parameter"}`, http.StatusBadRequest)
 			return
 		}
 
-		userID, _ := posts.GetUserID(r)
 		postComments, err := GetCommentsByPostID(postID, userID)
 		if err != nil {
 			http.Error(w, `{"error":"Failed to fetch comments"}`, http.StatusInternalServerError)
@@ -46,7 +50,7 @@ func CommentsHandler(w http.ResponseWriter, r *http.Request) {
 
 		var newCommentInput models.Comment
 		if err := json.NewDecoder(r.Body).Decode(&newCommentInput); err != nil {
-			http.Error(w, `{"error":"Invalid JSON payload"}`, http.StatusBadRequest)
+			http.Error(w, `{"error":"Invalid JSON "}`, http.StatusBadRequest)
 			return
 		}
 		defer r.Body.Close()
@@ -56,8 +60,6 @@ func CommentsHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		newCommentInput.UserID = userID
-
 		var authorUsername string
 		database.DB.QueryRow("SELECT username FROM users WHERE id = ?", userID).Scan(&authorUsername)
 		if authorUsername == "" {
@@ -65,7 +67,7 @@ func CommentsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		newCommentInput.Username = authorUsername
 		newCommentInput.Nickname = authorUsername
-		newCommentInput.CreatedAt = time.Now()
+		newCommentInput.CreatedAt = time.Now() // sets creation time to current time
 
 		savedComment, err := CreateComment(newCommentInput)
 		if err != nil {

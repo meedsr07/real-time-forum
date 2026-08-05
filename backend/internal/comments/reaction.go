@@ -13,7 +13,7 @@ type ReactionRequest struct {
 	IsLike    int `json:"is_like"` // 1 = like, 0 = dislike
 }
 
-//  handles comment likes and dislikes atomically.
+// handles comment likes and dislikes atomically.
 func ReactionHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := posts.GetUserID(r)
 	if err != nil || userID <= 0 || r.Method != http.MethodPost {
@@ -39,60 +39,30 @@ func ReactionHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Begin atomic transaction
-	tx, err := database.DB.Begin()
-	if err != nil {
-		http.Error(w, "Database error", http.StatusInternalServerError)
-		return
-	}
-	defer tx.Rollback()
-
 	// Check existing reaction
-	rows, err := tx.Query("SELECT reaction FROM comment_likes WHERE user_id=? AND comment_id=?", userID, req.CommentID)
-	var existingCount int
 	var existingReaction int = -1
-	if err == nil {
-		for rows.Next() {
-			var r int
-			if rows.Scan(&r) == nil {
-				existingCount++
-				existingReaction = r
-			}
-		}
-		rows.Close()
-	}
+	err = database.DB.QueryRow("SELECT reaction FROM comment_likes WHERE user_id=? AND comment_id=?", userID, req.CommentID).Scan(&existingReaction)
 
-	userReaction := -1
-	if existingCount > 0 && existingReaction == req.IsLike {
-		// Undo reaction
-		_, err = tx.Exec("DELETE FROM comment_likes WHERE user_id=? AND comment_id=?", userID, req.CommentID)
-		userReaction = -1
+	userReaction := req.IsLike // set the user reaction
+
+	// delete the old reaction to prevent duplicates
+	database.DB.Exec("DELETE FROM comment_likes WHERE user_id=? AND comment_id=?", userID, req.CommentID)
+
+	if err == nil && existingReaction == req.IsLike {
+		userReaction = -1 // Undo reaction
 	} else {
-		// Insert or switch reaction
-		_, err = tx.Exec("DELETE FROM comment_likes WHERE user_id=? AND comment_id=?", userID, req.CommentID)
-		if err == nil {
-			_, err = tx.Exec("INSERT INTO comment_likes (user_id, comment_id, reaction) VALUES (?, ?, ?)", userID, req.CommentID, req.IsLike)
+		_, err = database.DB.Exec("INSERT INTO comment_likes (user_id, comment_id, reaction) VALUES (?, ?, ?)", userID, req.CommentID, req.IsLike)
+		if err != nil {
+			http.Error(w, "Failed to update reaction", http.StatusInternalServerError)
+			return
 		}
-		userReaction = req.IsLike
-	}
-	if err != nil {
-		http.Error(w, "Failed to update reaction", http.StatusInternalServerError)
-		return
 	}
 
-	// Recalculate reaction counts
+	// count the new total likes and dislikes
 	var likes, dislikes int
-	err = tx.QueryRow("SELECT COALESCE(SUM(reaction=1),0), COALESCE(SUM(reaction=0),0) FROM comment_likes WHERE comment_id=?", req.CommentID).Scan(&likes, &dislikes)
-	if err != nil {
-		http.Error(w, "Failed to count reactions", http.StatusInternalServerError)
-		return
-	}
+	database.DB.QueryRow("SELECT COALESCE(SUM(reaction=1),0), COALESCE(SUM(reaction=0),0) FROM comment_likes WHERE comment_id=?", req.CommentID).Scan(&likes, &dislikes)
 
-	if err = tx.Commit(); err != nil {
-		http.Error(w, "Failed to commit transaction", http.StatusInternalServerError)
-		return
-	}
-
+	// send the JSON response to the frontend
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]any{
 		"status":        "success",
