@@ -45,7 +45,7 @@ window.switchChatView = switchChatView;
 export function openChat(userId, nickname) {
     window.currentChatUser = userId;
 
-    document.getElementById("active-chat-username").textContent = nickname || "Chat";
+    document.getElementById("active-chat-username").textContent = nickname;
     document.getElementById("sidebar-receiver-id").value = userId;
 
     document.querySelectorAll(".user-item.active").forEach((el) => el.classList.remove("active"));
