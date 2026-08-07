@@ -5,7 +5,7 @@ import { CreatePostView } from '/js/post/createPost.js';
 import { loadPostCard } from '/js/post/postDetails.js';
 import { updateAuthUI } from '/js/compenents/navbar.js';
 import { ErrorPageView } from '/js/errorPage.js';
-import { ChatView } from '/js/chat/chat.js';
+// import { ChatView } from '/js/chat/chat.js';
 
 const routes = {
     '/': () => {
@@ -16,7 +16,7 @@ const routes = {
     '/login': LoginView,
     '/register': RegisterView,
     '/create-post': CreatePostView,
-    '/messages': ChatView,
+    // '/messages': ChatView,
     '/404': ErrorPageView,
 };
 
@@ -54,11 +54,9 @@ async function render(path) {
     const isAuthPage = path === '/login' || path === '/register';
     const authed = await checkSession();
 
-    // Route guards — redirect if auth state doesn't match page type
     if (!authed && !isAuthPage) return navigateTo('/login');
     if (authed && isAuthPage) return navigateTo('/');
 
-    // Toggle shell visibility — auth pages are fullscreen, no sidebar/nav
     const hide = isAuthPage ? 'none' : '';
     document.querySelector('.sidebar')?.style.setProperty('display', hide);
     document.getElementById('chatSidebar')?.style.setProperty('display', hide);
@@ -74,10 +72,12 @@ async function render(path) {
     if (isAuthPage) { app.style.padding = '0'; app.style.maxWidth = 'none'; }
     else { app.style.padding = ''; app.style.maxWidth = ''; }
 
-    // Dynamic route: /post/:id
     if (path.startsWith('/post/')) {
         const id = Number(path.split('/')[2]);
-        if (id) { app.innerHTML = '<div id="feed-container"></div>'; return loadPostCard(id); }
+        if (id) {
+            app.innerHTML = '<div id="feed-container"></div>'
+            return loadPostCard(id);
+        }
     }
 
     // Match route or fallback to 404

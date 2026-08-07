@@ -83,6 +83,7 @@ export function renderPosts(posts) {
     posts.forEach(post => {
         const postCard = createPostCard(post)
         postCard.addEventListener('click', () => {
+            console.log('there is a click here:' , post.id)
             window.navigateTo(`/post/${post.id}`);
         })
         feedContainer.appendChild(postCard);

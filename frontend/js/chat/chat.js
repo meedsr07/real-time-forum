@@ -17,45 +17,20 @@ const THROTTLE_MS = 300;
 const chatForm = document.getElementById("sidebar-chat-form");
 const chatInput = document.getElementById("sidebar-chat-input");
 
-// Router view for /messages
-export function ChatView() {
-    const dom = document.createElement("div");
-    dom.innerHTML = `
-        <div class="empty-feed">
-            <div class="empty-feed-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-            </div>
-            <h2>Messages</h2>
-            <p>Pick a member from the chat sidebar to start a private conversation.</p>
-        </div>
-    `;
 
-    return { dom, logic: openChatSidebar };
-}
 
-// Sidebar controls (called from the HTML)
+
 export function toggleChatSidebar() {
     const layout = document.getElementById("contentLayout");
-    const opening = !layout.classList.contains("chat-active");
+    const opening = layout.classList.contains("chat-active");
 
     layout.classList.toggle("chat-active");
-    if (opening) {
+    if (!opening) {
         switchChatView("users");
         loadUsers();
     }
 }
 window.toggleChatSidebar = toggleChatSidebar;
-
-export function openChatSidebar() {
-    const layout = document.getElementById("contentLayout");
-    if (!layout.classList.contains("chat-active")) {
-        layout.classList.add("chat-active");
-    }
-    switchChatView("users");
-    loadUsers();
-}
 
 export function switchChatView(view) {
     const usersView = document.getElementById("chat-view-users");
