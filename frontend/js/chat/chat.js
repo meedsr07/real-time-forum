@@ -1,5 +1,5 @@
 import { sendWebSocketMessage } from "../websocket.js";
-import { loadUsers, reorderUsers, showNotification, markRead } from "./onlineUsers.js";
+import { loadUsers, updateLastMessage, showNotification, clearNotification } from "./onlineUsers.js";
 import { addThrottledScrollListener, autoScroll, isNearBottom, showMessageToast } from "./chatHelpers.js";
 import {
     appendMessage,
@@ -103,15 +103,7 @@ export function updateChatMessages(message) {
     showMessageToast(message, nickname, () => openChat(message.senderId, nickname));
 }
 
-// Keep the users list ordered by the last message sent
-export function updateLastMessage(userId, message) {
-    reorderUsers(userId, message);
-}
 
-// Remove the unread badge of a conversation
-export function clearNotification(userId) {
-    markRead(userId);
-}
 
 if (chatForm) {
     chatForm.addEventListener("submit", sendMessage);
