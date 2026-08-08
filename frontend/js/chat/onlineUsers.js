@@ -2,10 +2,7 @@ import { ApiRequest } from "../api.js";
 import { formatRelativeTime } from "./chatHelpers.js";
 
 const usersList = document.getElementById("users-list");
-
-// Cache of the last fetched users (used to resolve nicknames for incoming messages)
 let usersCache = [];
-// Users that currently have unread messages (kept across re-renders)
 const notifiedUsers = new Set();
 
 // 1. Load all users from the backend

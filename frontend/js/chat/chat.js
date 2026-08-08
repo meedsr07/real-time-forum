@@ -19,7 +19,7 @@ const chatInput = document.getElementById("sidebar-chat-input");
 
 
 
-
+// this function is to open and close the chat sidbar
 export function toggleChatSidebar() {
     const layout = document.getElementById("contentLayout");
     const opening = layout.classList.contains("chat-active");
@@ -32,6 +32,7 @@ export function toggleChatSidebar() {
 }
 window.toggleChatSidebar = toggleChatSidebar;
 
+// switch view of sidbar userslist or conversation
 export function switchChatView(view) {
     const usersView = document.getElementById("chat-view-users");
     const convView = document.getElementById("chat-view-conversation");
@@ -41,16 +42,12 @@ export function switchChatView(view) {
 }
 window.switchChatView = switchChatView;
 
-// Open a conversation with a user
 export function openChat(userId, nickname) {
+    
     window.currentChatUser = userId;
 
     document.getElementById("active-chat-username").textContent = nickname;
     document.getElementById("sidebar-receiver-id").value = userId;
-
-    document.querySelectorAll(".user-item.active").forEach((el) => el.classList.remove("active"));
-    const selected = document.querySelector(`[data-user-id="${userId}"]`);
-    if (selected) selected.classList.add("active");
 
     clearNotification(userId);
     switchChatView("conversation");
