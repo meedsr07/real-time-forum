@@ -94,7 +94,7 @@ export function updateChatMessages(message) {
     const isConvOpen = convView ? !convView.classList.contains("hidden") : false;
 
     // Only append silently if sidebar is open AND conversation view is active for this sender
-    if (isSidebarOpen && isConvOpen) {
+    if (isSidebarOpen && isConvOpen && message.senderId === window.currentChatUser) {
         appendMessage(message);
         return;
     }
